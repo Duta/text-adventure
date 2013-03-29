@@ -4,11 +4,11 @@ public class Room {
 	private Room east;
 	private Room south;
 	private Room west;
-	private Item[] items;
+	private Inventory inventory;
 
 	public Room(String description) {
 		setDescription(description);
-		items = new Item[0];
+		inventory = new Inventory();
 	}
 
 	public void printDescription() {
@@ -31,18 +31,7 @@ public class Room {
 	}
 
 	public void printItems() {
-		// For each item
-		for(int i = 0; i < items.length; i++) {
-			Item item = items[i];
-			// If it's null, don't bother printing and
-			// move onto the next item in the array
-			if(item == null) {
-				continue;
-			}
-			// Print the item
-			String itemName = item.getName();
-			System.out.println("You see a " + itemName + ".");
-		}
+		inventory.printItems("You see a %s.\n");
 	}
 
 	public boolean canGoNorth() {
@@ -62,26 +51,14 @@ public class Room {
 	}
 
 	public boolean containsItem(String itemName) {
-		// If they passed null, don't bother checking
-		if(itemName == null) {
-			return false;
-		}
+		return inventory.contains(itemName);
+	}
 
-		// For each item in the room
-		for(int i = 0; i < items.length; i++) {
-			Item item = items[i];
-			// If it's null, don't bother checking and
-			// move on to the next item in the array
-			if(item == null) {
-				continue;
-			}
-			// If it's the same name, return true
-			if(itemName.equalsIgnoreCase(item.getName())) {
-				return true;
-			}
-		}
+	public Item removeItem(String itemName) {
+		return inventory.remove(itemName);
+	}
 
-		// If we couldn't find the item, return false
+	public boolean parseSpecialInput(String[] words, Inventory inventory) {
 		return false;
 	}
 
@@ -106,7 +83,7 @@ public class Room {
 	}
 
 	public void setItems(Item[] items) {
-		this.items = items == null ? new Item[0] : items;
+		inventory.setItems(items);
 	}
 
 	public String getDescription() {
@@ -130,6 +107,6 @@ public class Room {
 	}
 
 	public Item[] getItems() {
-		return items;
+		return inventory.getItems();
 	}
 }

@@ -8,7 +8,7 @@ public class TextAdventure {
 		INPUT_PREFIX = "> ",
 		EXIT_MESSAGE = "Seeya. Thanks for playing ZombiesAdventure!";
 	private static final String[]
-		MOVEMENT_COMMANDS = {
+		MOVEMENT_WORDS = {
 			"go",
 			"move",
 			"walk",
@@ -37,6 +37,17 @@ public class TextAdventure {
 			"w",
 			"left"
 		},
+		PRINT_WORDS = {
+			"print",
+			"p",
+			"show",
+			"check"
+		},
+		INVENTORY_WORDS = {
+			"inv",
+			"inventory",
+			"bag"
+		},
 		STOP_WORDS = {
 			"stop",
 			"exit"
@@ -44,21 +55,26 @@ public class TextAdventure {
 	private Room currentRoom;
 	private BufferedReader b;
 	private boolean running;
+	private Inventory inventory;
 
 	public static void main(String[] args) {
-		// Set up the game
+		// Set up some example rooms
 		Room kitchen = new KitchenRoom();
 		Room bedroom = new BedroomRoom();
-
+		Room bathroom = new BathroomRoom();
 		bedroom.setNorth(kitchen);
 		kitchen.setSouth(bedroom);
+		bathroom.setEast(bedroom);
+		bedroom.setWest(bathroom);
 
+		// Start game
 		new TextAdventure(kitchen);
 	}
 
 	public TextAdventure(Room startRoom) {
 		currentRoom = startRoom;
 		running = true;
+		inventory = new Inventory();
 
 		b = new BufferedReader(new InputStreamReader(System.in));
 
@@ -116,11 +132,12 @@ public class TextAdventure {
 		// Check for move north
 		if(matchesAny(words[0], NORTH_WORDS)
 		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_COMMANDS)
+		&&  matchesAny(words[0], MOVEMENT_WORDS)
 		&&  matchesAny(words[1], NORTH_WORDS))) {
 			if(currentRoom.canGoNorth()) {
 				// If we can go north, go north
 				currentRoom = currentRoom.getNorth();
+				System.out.println("You go north.");
 			} else {
 				// If we can't, tell the player
 				System.out.println("Can't move north...");
@@ -131,11 +148,12 @@ public class TextAdventure {
 		// Check for move east
 		if(matchesAny(words[0], EAST_WORDS)
 		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_COMMANDS)
+		&&  matchesAny(words[0], MOVEMENT_WORDS)
 		&&  matchesAny(words[1], EAST_WORDS))) {
 			if(currentRoom.canGoEast()) {
 				// If we can go east, go east
 				currentRoom = currentRoom.getEast();
+				System.out.println("You go east.");
 			} else {
 				// If we can't, tell the player
 				System.out.println("Can't move east...");
@@ -146,11 +164,12 @@ public class TextAdventure {
 		// Check for move south
 		if(matchesAny(words[0], SOUTH_WORDS)
 		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_COMMANDS)
+		&&  matchesAny(words[0], MOVEMENT_WORDS)
 		&&  matchesAny(words[1], SOUTH_WORDS))) {
 			if(currentRoom.canGoSouth()) {
 				// If we can go south, go south
 				currentRoom = currentRoom.getSouth();
+				System.out.println("You go south.");
 			} else {
 				// If we can't, tell the player
 				System.out.println("Can't move south...");
@@ -161,14 +180,52 @@ public class TextAdventure {
 		// Check for move west
 		if(matchesAny(words[0], WEST_WORDS)
 		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_COMMANDS)
+		&&  matchesAny(words[0], MOVEMENT_WORDS)
 		&&  matchesAny(words[1], WEST_WORDS))) {
 			if(currentRoom.canGoWest()) {
 				// If we can go west, go west
 				currentRoom = currentRoom.getWest();
+				System.out.println("You go west.");
 			} else {
 				// If we can't, tell the player
 				System.out.println("Can't move west...");
+			}
+			return;
+		}
+
+		// Check for pick up
+		if(words.length > 2
+		&& "pick up".equalsIgnoreCase(words[0] + " " + words[1])) {
+			String itemName = words[2];
+			for(int i = 3; i < words.length; i++) {
+				itemName += " " + words[i];
+			}
+			if(currentRoom.containsItem(itemName)) {
+				// If the item is in the
+				// room, pick it up
+				Item item = currentRoom.removeItem(itemName);
+				// and add it to the inventory
+				inventory.add(item);
+
+				System.out.println("You pick up the " + itemName + ".");
+			} else {
+				// Tell the player that we
+				// can't find that item
+				System.out.println("That item isn't available");
+			}
+			return;
+		}
+
+		// Check for print inventory
+		if(matchesAny(words[0], INVENTORY_WORDS)
+		|| (words.length > 1
+		&& matchesAny(words[0], PRINT_WORDS)
+		&& matchesAny(words[1], INVENTORY_WORDS))) {
+			System.out.println("Inventory:");
+			if(inventory.isEmpty()) {
+				System.out.println(" - Nothing!");
+			} else {
+				inventory.printItems(" - %s\n");
 			}
 			return;
 		}
