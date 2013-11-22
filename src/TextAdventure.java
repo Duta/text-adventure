@@ -50,7 +50,8 @@ public class TextAdventure {
 		},
 		STOP_WORDS = {
 			"stop",
-			"exit"
+			"exit",
+			"quit"
 		};
 	private Room currentRoom;
 	private BufferedReader b;
@@ -130,10 +131,8 @@ public class TextAdventure {
 		}
 
 		// Check for move north
-		if(matchesAny(words[0], NORTH_WORDS)
-		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_WORDS)
-		&&  matchesAny(words[1], NORTH_WORDS))) {
+		if(matchesSeq(words, NORTH_WORDS)
+		|| matchesSeq(words, MOVEMENT_WORDS, NORTH_WORDS)) {
 			if(currentRoom.canGoNorth()) {
 				// If we can go north, go north
 				currentRoom = currentRoom.getNorth();
@@ -146,10 +145,8 @@ public class TextAdventure {
 		}
 
 		// Check for move east
-		if(matchesAny(words[0], EAST_WORDS)
-		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_WORDS)
-		&&  matchesAny(words[1], EAST_WORDS))) {
+		if(matchesSeq(words, EAST_WORDS)
+		|| matchesSeq(words, MOVEMENT_WORDS, EAST_WORDS)) {
 			if(currentRoom.canGoEast()) {
 				// If we can go east, go east
 				currentRoom = currentRoom.getEast();
@@ -162,10 +159,8 @@ public class TextAdventure {
 		}
 
 		// Check for move south
-		if(matchesAny(words[0], SOUTH_WORDS)
-		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_WORDS)
-		&&  matchesAny(words[1], SOUTH_WORDS))) {
+		if(matchesSeq(words, SOUTH_WORDS)
+		|| matchesSeq(words, MOVEMENT_WORDS, SOUTH_WORDS)) {
 			if(currentRoom.canGoSouth()) {
 				// If we can go south, go south
 				currentRoom = currentRoom.getSouth();
@@ -178,10 +173,8 @@ public class TextAdventure {
 		}
 
 		// Check for move west
-		if(matchesAny(words[0], WEST_WORDS)
-		|| (words.length > 1
-		&&  matchesAny(words[0], MOVEMENT_WORDS)
-		&&  matchesAny(words[1], WEST_WORDS))) {
+		if(matchesSeq(words, WEST_WORDS)
+		|| matchesSeq(words, MOVEMENT_WORDS, WEST_WORDS)) {
 			if(currentRoom.canGoWest()) {
 				// If we can go west, go west
 				currentRoom = currentRoom.getWest();
@@ -194,8 +187,7 @@ public class TextAdventure {
 		}
 
 		// Check for pick up
-		if(words.length > 2
-		&& "pick up".equalsIgnoreCase(words[0] + " " + words[1])) {
+		if(matchesSeq(words, new String[]{"pick"}, new String[]{"up"})) {
 			String itemName = words[2];
 			for(int i = 3; i < words.length; i++) {
 				itemName += " " + words[i];
@@ -217,10 +209,8 @@ public class TextAdventure {
 		}
 
 		// Check for print inventory
-		if(matchesAny(words[0], INVENTORY_WORDS)
-		|| (words.length > 1
-		&& matchesAny(words[0], PRINT_WORDS)
-		&& matchesAny(words[1], INVENTORY_WORDS))) {
+		if(matchesSeq(words, INVENTORY_WORDS)
+		|| matchesSeq(words, PRINT_WORDS, INVENTORY_WORDS)) {
 			System.out.println("Inventory:");
 			if(inventory.isEmpty()) {
 				System.out.println(" - Nothing!");
@@ -231,7 +221,7 @@ public class TextAdventure {
 		}
 
 		// Check for a stop command
-		if(matchesAny(words[0], STOP_WORDS)) {
+		if(matchesSeq(words, STOP_WORDS)) {
 			// Stop the game
 			running = false;
 			return;
@@ -244,10 +234,8 @@ public class TextAdventure {
 	}
 
 	private static boolean matchesAny(String word, String[] possibilities) {
-		// For each possibility
-		for(int i = 0; i < possibilities.length; i++) {
-			String possibility = possibilities[i];
-			// If it matches, then return true
+		for(String possibility : possibilities) {
+			// If it matches, return true
 			if(word.equalsIgnoreCase(possibility)) {
 				return true;
 			}
@@ -255,5 +243,28 @@ public class TextAdventure {
 
 		// If it didn't match any, return false
 		return false;
+	}
+
+	private static boolean matchesSeq(String[] words, String[]... sequence) {
+		// If there aren't enough words to possibly
+		// match the sequence, return false
+		if(words.length < sequence.length) {
+			return false;
+		}
+
+		// For each item in the sequence, ensure the
+		// word is one of the possibilities given
+		for(int i = 0; i < sequence.length; i++) {
+			String word = words[i];
+			String[] possibilities = sequence[i];
+			// If it isn't, return false
+			if(!matchesAny(word, possibilities)) {
+				return false;
+			}
+		}
+
+		// If each item in the sequence
+		// had a match, return true
+		return true;
 	}
 }
